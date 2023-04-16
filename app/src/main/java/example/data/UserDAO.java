@@ -1,5 +1,4 @@
 package example.data;
-
 import java.util.Set;
 
 /**
