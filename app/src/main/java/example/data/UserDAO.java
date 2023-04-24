@@ -20,7 +20,7 @@ public interface UserDAO {
      * @param email The email as a String to search for.
      * @return all details in a User object for the email
      */
-    User getUser(String email);
+    User getUser(String email) throws InvalidUserException;
 
     /**
      * Updates a User in the user list.
