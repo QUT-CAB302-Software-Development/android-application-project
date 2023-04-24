@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import example.data.InvalidUserException;
 import example.data.StaticUserDAO;
 import example.data.User;
 
@@ -73,7 +74,11 @@ public class LoginActivity extends AppCompatActivity {
         String password = passwordEditText.getText().toString();
 
         // Add the user to the database
-        staticUserDAO.addUser(new User("", password, email));
+        try {
+            staticUserDAO.addUser(new User("", password, email));
+        } catch (InvalidUserException e) {
+            throw new RuntimeException(e);
+        }
 
         // Set the isRegistering flag to true
         isRegistering = true;
