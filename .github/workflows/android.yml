@@ -7,8 +7,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build-test:
-
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,14 +16,29 @@ jobs:
       uses: actions/setup-java@v3
       with:
         java-version: '11'
-        distribution: 'temurin'
+        distribution: 'corretto'
         cache: gradle
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      
-    - name: Build with Gradle
-      run: ./gradlew build
 
     - name: Test with Gradle
       run: ./gradlew test
+    
+    # The test reports are generated in app/build/reports/tests
+    # Source: https://developer.android.com/studio/test/command-line
+    - name: Collect Debug Test Report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: TestReportDebug
+        path: ./app/build/reports/tests/testDebugUnitTest
+        retention-days: 30
+        
+    - name: Collect Release Test Report 
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: TestReportRelease
+        path: ./app/build/reports/tests/testReleaseUnitTest
+        retention-days: 30
