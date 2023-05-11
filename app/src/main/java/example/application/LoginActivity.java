@@ -14,6 +14,8 @@ import example.data.DefaultUser;
 import example.data.InvalidUserException;
 import example.data.StaticUserDAO;
 import example.data.User;
+import example.services.DummyUser;
+import example.services.DummyUserFetcher;
 
 import java.util.Objects;
 
@@ -53,6 +55,12 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(v -> onLoginButtonClick());
         // Set up a click listener for the register button
         registerButton.setOnClickListener(v -> onRegisterButtonClick());
+
+        DummyUserFetcher fetcher = new DummyUserFetcher();
+        DummyUser[] users = fetcher.fetchDummyUsers();
+        for (DummyUser user : users) {
+            System.out.println(user);
+        }
     }
 
     /**
