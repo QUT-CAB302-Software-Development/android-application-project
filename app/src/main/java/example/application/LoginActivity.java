@@ -2,6 +2,9 @@ package example.application;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -10,9 +13,16 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import example.data.DefaultUser;
 import example.data.InvalidUserException;
 import example.data.StaticUserDAO;
 import example.data.User;
+import example.services.DummyUser;
+import example.services.DummyUserFetcher;
+
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Represents the login view of the application.
@@ -50,6 +60,23 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(v -> onLoginButtonClick());
         // Set up a click listener for the register button
         registerButton.setOnClickListener(v -> onRegisterButtonClick());
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        executorService.execute(() -> {
+            // This code is run on a background thread.
+            DummyUserFetcher fetcher = new DummyUserFetcher();
+            DummyUser[] users = fetcher.fetchDummyUsers();
+
+            // The following code is run on the main thread (and can update the UI).
+            handler.post(() -> {
+                for (DummyUser user : users) {
+                    System.out.println(user);
+                }
+                Toast.makeText(LoginActivity.this, "Loaded " + users.length + " users.", Toast.LENGTH_SHORT).show();
+            });
+        });
     }
 
     /**
@@ -114,22 +141,23 @@ public class LoginActivity extends AppCompatActivity {
      * @return true if the user was logged in, false otherwise
      */
     private boolean logIn(String email, String password, String name){
-        // Check if the email and password match a registered user.
-        for (User user : staticUserDAO.listUsers()) {
-            if (user.getEmail().equals(email) && user.getPassword().equals(password)) {
-                currentUser = user;
+        try {
+            User matchedUser = staticUserDAO.getUser(email);
+            if (Objects.equals(matchedUser.getPassword(), password)){
+                currentUser = matchedUser;
+            } else {
+                currentUser = new DefaultUser();
             }
-        }
-        // If so, if the name is not empty, update the user's name and log the user in.
-        if (currentUser != null) {
+            // If so, if the name is not empty, update the user's name and log the user in.
             if (!name.isEmpty()) {
                 currentUser.setName(name);
                 staticUserDAO.updateUser(currentUser);
             }
             // Always log the user in.
             return true;
+        } catch (InvalidUserException e) {
+            throw new RuntimeException(e);
         }
-        return false;
     }
 
     /**
@@ -139,13 +167,18 @@ public class LoginActivity extends AppCompatActivity {
      * @return true if the user was logged in, false otherwise
      */
     private boolean logIn(String email, String password) {
-        for (User user : staticUserDAO.listUsers()) {
-            if (user.getEmail().equals(email) && user.getPassword().equals(password)) {
-                currentUser = user;
-                return true;
+        User matchedUser = null;
+        try {
+            matchedUser = staticUserDAO.getUser(email);
+            if (Objects.equals(matchedUser.getPassword(), password)){
+                currentUser = matchedUser;
+            } else {
+                currentUser = new DefaultUser();
             }
+            return true;
+        } catch (InvalidUserException e) {
+            throw new RuntimeException(e);
         }
-        return false;
     }
 
     /**

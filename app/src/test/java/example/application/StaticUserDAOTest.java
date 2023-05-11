@@ -42,7 +42,7 @@ public class StaticUserDAOTest {
     void testGetUserNotFound() throws InvalidUserException {
         addTwoUsers();
         // Check that the email3 is not found.
-        assertNull(userDAO.getUser("email3@example.com"));
+        assertEquals(userDAO.getUser("email3@example.com").getName(), "Guest");
     }
 
     @Test
@@ -50,7 +50,7 @@ public class StaticUserDAOTest {
         addTwoUsers();
         userDAO.deleteUser("email@example.com");
         // Check that the user was deleted, and that there is only one user left.
-        assertNull(userDAO.getUser("email@example.com"));
+        assertEquals(userDAO.getUser("email@example.com").getName(), "Guest");
         assertEquals(1, userDAO.listUsers().size());
     }
 

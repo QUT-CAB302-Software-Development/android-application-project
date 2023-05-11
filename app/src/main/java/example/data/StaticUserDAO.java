@@ -25,11 +25,11 @@ public class StaticUserDAO implements UserDAO {
     }
 
     @Override
-    public User getUser(String email) {
+    public User getUser(String email) throws InvalidUserException {
         return connection.getUsers().stream()
                 .filter(user -> user.getEmail().equals(email))
                 .findFirst()
-                .orElse(null);
+                .orElse(new DefaultUser());
     }
 
     @Override
