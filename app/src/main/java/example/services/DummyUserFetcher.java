@@ -54,6 +54,7 @@ public class DummyUserFetcher {
                 String response = Utils.inputStreamToString(in);
                 return DummyUsers.fromJson(response).getDummyUsers();
             } else {
+                System.out.println("Error: " + responseCode);
                 return null;
             }
         } catch (Exception e) {

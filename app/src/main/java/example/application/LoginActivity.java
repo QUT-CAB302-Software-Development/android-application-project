@@ -2,6 +2,9 @@ package example.application;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -18,6 +21,8 @@ import example.services.DummyUser;
 import example.services.DummyUserFetcher;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Represents the login view of the application.
@@ -56,11 +61,22 @@ public class LoginActivity extends AppCompatActivity {
         // Set up a click listener for the register button
         registerButton.setOnClickListener(v -> onRegisterButtonClick());
 
-        DummyUserFetcher fetcher = new DummyUserFetcher();
-        DummyUser[] users = fetcher.fetchDummyUsers();
-        for (DummyUser user : users) {
-            System.out.println(user);
-        }
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        executorService.execute(() -> {
+            // This code is run on a background thread.
+            DummyUserFetcher fetcher = new DummyUserFetcher();
+            DummyUser[] users = fetcher.fetchDummyUsers();
+
+            // The following code is run on the main thread (and can update the UI).
+            handler.post(() -> {
+                for (DummyUser user : users) {
+                    System.out.println(user);
+                }
+                Toast.makeText(LoginActivity.this, "Loaded " + users.length + " users.", Toast.LENGTH_SHORT).show();
+            });
+        });
     }
 
     /**
